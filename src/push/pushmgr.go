@@ -40,6 +40,8 @@ func (nm *NotificationMgr) Save(filename string) {
 	}
 	defer file.Close()
 	jencoder := json.NewEncoder(file)
+	nm.OnAccess()
+	defer nm.AfterAccess()
 	jencoder.Encode(nm.nl)
 }
 
@@ -51,6 +53,8 @@ func (nm *NotificationMgr) Load(filename string) {
 		return
 	}
 	defer file.Close()
+	nm.OnAccess()
+	defer nm.AfterAccess()
 	jdecoder := json.NewDecoder(file)
 	err = jdecoder.Decode(&(nm.nl))
 	if err != nil {
