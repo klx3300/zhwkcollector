@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// Config represents a config file.
 type Config string
 
 // This is the string format of config file name.
