@@ -8,11 +8,14 @@ import (
 	"os"
 	"push"
 	"status"
+	"strconv"
+	"time"
 )
 
 var notif = push.NewNotificationMgr()
 var servstat = status.NewServiceStatus()
 var conf map[string]string
+var timeout int
 
 func main() {
 	var confile = configrd.Config(os.Args[1])
@@ -31,11 +34,28 @@ func main() {
 	if !mpok {
 		panic("ListenPort has to be exist in config map!")
 	}
+	_, mpok = conf["Timeout"]
+	if !mpok {
+		panic("Timeout has to be exist in config map!")
+	}
+	var err error
+	timeout, err = strconv.Atoi(conf["Timeout"])
+	if err != nil {
+		panic("Timeout is not a valid integer!")
+	}
 	http.HandleFunc("/fetch", onFetch)
 	http.HandleFunc("/callback", onCallback)
 	http.HandleFunc("/register", onRegister)
 	http.HandleFunc("/revoke", onRevoke)
+	go onTimeout()
 	logger.Log.Logln(logger.LEVEL_WARNING, "Listen", http.ListenAndServe(":"+conf["ListenPort"], nil))
+}
+
+func onTimeout() {
+	for {
+		<-time.After(time.Duration(timeout) * time.Millisecond)
+		servstat.Refresh()
+	}
 }
 
 func onFetch(w http.ResponseWriter, r *http.Request) {
