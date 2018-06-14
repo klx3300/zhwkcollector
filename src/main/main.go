@@ -92,6 +92,7 @@ func onCallback(w http.ResponseWriter, r *http.Request) {
 	nl := notif.OnAccess()
 	nl.Append(nr.Heading, nr.Content)
 	notif.AfterAccess()
+	notif = push.NewNotificationMgr() // goodbye!
 	notif.Save(conf["NotificationSave"])
 }
 
