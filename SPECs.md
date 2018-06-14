@@ -9,7 +9,8 @@
 
 ```go
 type Response struct {
-    Serv map[Service]Status
+    Serv []Service
+    Stat []Status
     Noti []Notification
 }
 ```
