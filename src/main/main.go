@@ -60,13 +60,15 @@ func onTimeout() {
 
 func onFetch(w http.ResponseWriter, r *http.Request) {
 	resp := PollResponse{
-		Serv: make(map[status.Service]status.Status),
+		Serv: make([]status.Service, 0),
+		Stat: make([]status.Status, 0),
 		Noti: make([]push.Notification, 0),
 	}
 	// some copy work here..
 	mss := servstat.OnAccess()
 	for k, v := range *mss {
-		resp.Serv[k] = v
+		resp.Serv = append(resp.Serv, k)
+		resp.Stat = append(resp.Stat, v)
 	}
 	servstat.AfterAccess()
 	pmsg := notif.OnAccess()

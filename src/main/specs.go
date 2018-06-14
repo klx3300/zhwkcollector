@@ -7,7 +7,8 @@ import (
 
 // PollResponse is the response to /fetch access.
 type PollResponse struct {
-	Serv map[status.Service]status.Status
+	Serv []status.Service
+	Stat []status.Status
 	Noti []push.Notification
 }
 
