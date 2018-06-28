@@ -12,7 +12,13 @@ Must-have sections are:
 - NotificationSave
 - ServiceSave
 - ListenPort
-- Timeout (in milliseconds)
+- Timeout (in milliseconds, number written in string)
+- FetchSymKey (at most 32 bytes, will trunc if larger)
+- CallbackSymKey
+- ControlSymKey
+- ServicePollSymKey
+- AESIV (must equal to the blocksize of AES. will be defaulted to repeating "IVECTOR" if not specified)
+- AcceptBareConn ("true" or "false", unmatched will be treated as "false")
 
 
 
@@ -21,4 +27,10 @@ Must-have sections are:
 ```shell
 $ ./zhwkcollector <config-file>
 ```
+
+
+
+### Change Logs
+
+- 0.1 Basic functions completed. Not recommended to use at production environments.
 

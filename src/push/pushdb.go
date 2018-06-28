@@ -11,24 +11,33 @@ type Notification struct {
 	Content string
 }
 
+type NotificationAck struct {
+	Noti           Notification
+	UnAckedNames   []string
+	NamelessRemain int
+}
+
 // NotificationList is the list of notifications.
-type NotificationList []Notification
+type NotificationList []NotificationAck
 
 // This returns true self.
-func (nl *NotificationList) This() []Notification {
-	return []Notification(*nl)
+func (nl *NotificationList) This() []NotificationAck {
+	return []NotificationAck(*nl)
 }
 
 // NewNotificationList makes new ones.
 func NewNotificationList() NotificationList {
-	return make([]Notification, 0)
+	return make([]NotificationAck, 0)
 }
 
 // Append will behaves like the append, time automatically generated.
-func (nl *NotificationList) Append(heading, content string) {
-	*nl = append(nl.This(), Notification{
-		Tm:      time.Now(),
-		Heading: heading,
-		Content: content,
+func (nl *NotificationList) Append(heading, content string, dest []string, nameless int) {
+	*nl = append(nl.This(), NotificationAck{
+		Noti: Notification{
+			Tm:      time.Now(),
+			Heading: heading,
+			Content: content},
+		UnAckedNames:   make([]string, 0),
+		NamelessRemain: nameless,
 	})
 }

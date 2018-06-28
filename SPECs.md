@@ -1,10 +1,16 @@
 # SPECs
 
-
-
 ### /fetch
 
--  Request `nil`
+-  Request
+
+```go
+type Request struct {
+    Name string
+    StatOnly string // "true"/"false", unidentified will be treated "false"
+}
+```
+
 -  Response
 
 ```go
@@ -23,6 +29,8 @@ type Response struct {
 type Request struct {
     Heading string
     Content string
+    DestNames []string
+    AnyAck int // beside DestNames, we may need how much acknowledges?
 }
 ```
 
@@ -69,3 +77,15 @@ type Notification struct {
 }
 ```
 
+
+
+### Encrypted
+
+```go
+type Encrypted struct {
+    EncryptionType string
+    DataBase64 string
+}
+```
+
+For current version, only "AES" in `EncryptionType` field is effective. For bare connections, just pass bare structure.

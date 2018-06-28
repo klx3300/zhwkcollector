@@ -17,3 +17,15 @@ type NotifyRequest struct {
 	Heading string
 	Content string
 }
+
+// EncryptedData represents encrypted data.
+type EncryptedData struct {
+	EncryptionType string
+	Data           string
+}
+
+// FetchRequest wow~!
+type FetchRequest struct {
+	Name     string
+	StatOnly string
+}

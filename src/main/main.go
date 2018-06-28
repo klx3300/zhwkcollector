@@ -2,6 +2,7 @@ package main
 
 import (
 	"configrd"
+	"ctool"
 	"encoding/json"
 	"logger"
 	"net/http"
@@ -16,6 +17,9 @@ var notif = push.NewNotificationMgr()
 var servstat = status.NewServiceStatus()
 var conf map[string]string
 var timeout int
+var fetchSym, cbSym, ctrlSym, pollSym string
+var fetchKey, cbKey, ctrlKey, pollKey, aesIv []byte
+var acceptBare = false
 
 func main() {
 	var confile = configrd.Config(os.Args[1])
@@ -43,6 +47,41 @@ func main() {
 	if err != nil {
 		panic("Timeout is not a valid integer!")
 	}
+	fetchSym, mpok = conf["FetchSymKey"]
+	if !mpok {
+		panic("FetchSymKey not speced.")
+	}
+	fetchKey = ctool.AESKeyRound(fetchSym)
+	cbSym, mpok = conf["CallbackSymKey"]
+	if !mpok {
+		panic("CallbackSymKey not speced.")
+	}
+	cbKey = ctool.AESKeyRound(cbSym)
+	ctrlSym, mpok = conf["ControlSymKey"]
+	if !mpok {
+		panic("ControlSymKey not speced.")
+	}
+	ctrlKey = ctool.AESKeyRound(ctrlSym)
+	pollSym, mpok = conf["ServicePollSymKey"]
+	if !mpok {
+		panic("ServicePollSymKey not speced.")
+	}
+	pollKey = ctool.AESKeyRound(pollSym)
+	var aiv string
+	aiv, mpok = conf["AESIV"]
+	if !mpok {
+		aesIv = ctool.AESIV(aiv)
+	} else {
+		aesIv = ctool.AESIV("IVECTOR")
+	}
+	_, mpok = conf["AcceptBareConn"]
+	if !mpok {
+		logger.Log.Logln(logger.LEVEL_WARNING, "AcceptBareConn unspeced. default to FALSE.")
+	} else {
+		if conf["AcceptBareConn"] == "true" {
+			acceptBare = true
+		}
+	}
 	http.HandleFunc("/fetch", onFetch)
 	http.HandleFunc("/callback", onCallback)
 	http.HandleFunc("/register", onRegister)
@@ -59,6 +98,19 @@ func onTimeout() {
 }
 
 func onFetch(w http.ResponseWriter, r *http.Request) {
+	baremode := false
+	fr := FetchRequest{}
+	jdecoder := json.NewDecoder(r.Body)
+	err := jdecoder.Decode(&fr)
+	if err != nil {
+		// check fallback permit
+		if acceptBare {
+			baremode = true
+		} else {
+			logger.Log.Logln(logger.LEVEL_WARNING, "Attempt to access with bare mode, denied.")
+			return
+		}
+	}
 	resp := PollResponse{
 		Serv: make([]status.Service, 0),
 		Stat: make([]status.Status, 0),
@@ -76,7 +128,8 @@ func onFetch(w http.ResponseWriter, r *http.Request) {
 		resp.Noti = append(resp.Noti, item)
 	}
 	notif.AfterAccess()
-	notif = push.NewNotificationMgr() // goodbye!
+	// we can't simply say goodbye now.. shame
+	// notif = push.NewNotificationMgr() // goodbye!
 	notif.Save(conf["NotificationSave"])
 	jencoder := json.NewEncoder(w)
 	err := jencoder.Encode(resp)
