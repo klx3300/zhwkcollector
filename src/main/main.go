@@ -76,6 +76,8 @@ func onFetch(w http.ResponseWriter, r *http.Request) {
 		resp.Noti = append(resp.Noti, item)
 	}
 	notif.AfterAccess()
+	notif = push.NewNotificationMgr() // goodbye!
+	notif.Save(conf["NotificationSave"])
 	jencoder := json.NewEncoder(w)
 	err := jencoder.Encode(resp)
 	if err != nil {
@@ -87,6 +89,7 @@ func onCallback(w http.ResponseWriter, r *http.Request) {
 	nr := NotifyRequest{}
 	jdecoder := json.NewDecoder(r.Body)
 	err := jdecoder.Decode(&nr)
+	logger.Log.Logln(logger.LEVEL_INFO, "NotiCb", nr)
 	if err != nil {
 		logger.Log.Logln(logger.LEVEL_WARNING, "Unable to unmarshal callback, ", err)
 		return
@@ -94,7 +97,6 @@ func onCallback(w http.ResponseWriter, r *http.Request) {
 	nl := notif.OnAccess()
 	nl.Append(nr.Heading, nr.Content)
 	notif.AfterAccess()
-	notif = push.NewNotificationMgr() // goodbye!
 	notif.Save(conf["NotificationSave"])
 }
 
